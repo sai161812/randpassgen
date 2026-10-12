@@ -16,3 +16,13 @@ class PasswordTests(unittest.TestCase):
             password = generate_password(length)
             self.assertEqual(len(password), length)
             self.assertTrue(set(password) <= set(ALPHABET))
+
+    def test_invalid_lengths_are_rejected_before_random_generation(self):
+        for length in (0, -1, 4097, True, 2.5, "16", None):
+            with self.subTest(length=length), patch("passgen.secrets.choice") as choice:
+                with self.assertRaises(ValueError):
+                    generate_password(length)
+                choice.assert_not_called()
+
+    def test_maximum_length_is_supported(self):
+        self.assertEqual(len(generate_password(4096)), 4096)
